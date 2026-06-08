@@ -135,7 +135,6 @@ void cmd_edit(int argc, char **argv) {
         if (len <= 0)
             continue;
 
-        // Ctrl+C exits editor
         if (c == 3) {
             printf("\n^C (exit editor)\n");
             break;
@@ -146,35 +145,28 @@ void cmd_edit(int argc, char **argv) {
 
             printf("\n");
 
-            // commands
-            if (strcmp(line, ":q") == 0)
-            {
+            if (strcmp(line, ":q") == 0) {
                 printf("Exit without saving\n");
                 break;
             }
 
-            if (strcmp(line, ":w") == 0)
-            {
+            if (strcmp(line, ":w") == 0) {
                 fflush(f);
                 printf("Saved\n");
                 pos = 0;
                 continue;
             }
 
-            // normal text → write
             fprintf(f, "%s\n", line);
 
             pos = 0;
-        }
-        else if (c == 127 || c == '\b') {
-            if (pos > 0)
-            {
+        } else if (c == 127 || c == '\b') {
+            if (pos > 0) {
                 pos--;
                 printf("\b \b");
                 fflush(stdout);
             }
-        }
-        else if (pos < BUF_SIZE - 1) {
+        } else if (pos < BUF_SIZE - 1) {
             line[pos++] = (char)c;
             printf("%c", c);
             fflush(stdout);
@@ -186,12 +178,12 @@ void cmd_edit(int argc, char **argv) {
     printf("-- EXIT EDIT MODE --\n");
 }
 
-command_t commands[] = {
+command_t commands[] = { 
     {"ls", cmd_ls}, 
-    {"cat",cmd_cat}, 
-    {"write",cmd_write}, 
-    {"rm",cmd_rm}, 
-    {"edit",cmd_edit}, 
-    {"exit",cmd_exit}, 
+    {"cat", cmd_cat}, 
+    {"write", cmd_write}, 
+    {"rm", cmd_rm}, 
+    {"edit", cmd_edit}, 
+    {"exit", cmd_exit}, 
     {NULL, NULL}
 };

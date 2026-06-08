@@ -23,25 +23,20 @@ void app_main(void)
 
     shell_running = 1;
 
-    while (shell_running)
-    {
+    while (shell_running) {
         uint8_t c;
         int len = uart_read_bytes(UART_NUM, &c, 1, portMAX_DELAY);
 
         if (len <= 0)
             continue;
 
-        if (c == 3)
-        {
+        if (c == 3) {
             printf("\n^C\n> ");
             pos = 0;
             fflush(stdout);
             continue;
-        }
-        else if (c == '\r' || c == '\n')
-        {
-            if (pos == 0)
-            {
+        } else if (c == '\r' || c == '\n') {
+            if (pos == 0) {
                 printf("> ");
                 fflush(stdout);
                 continue;
@@ -53,24 +48,17 @@ void app_main(void)
             execute_command(input);
             printf("> ");
             fflush(stdout);
-        }
-        else if (c == 127 || c == '\b')
-        {
-            if (pos > 0)
-            {
+        } else if (c == 127 || c == '\b') {
+            if (pos > 0) {
                 pos--;
                 printf("\b \b");
                 fflush(stdout);
             }
-        }
-        else if (pos < BUF_SIZE - 1)
-        {
+        } else if (pos < BUF_SIZE - 1) {
             input[pos++] = (char)c;
             printf("%c", c);
             fflush(stdout);
-        }
-        else if (c == 21)
-        { // Ctrl+U
+        } else if (c == 21) { 
             while (pos > 0)
             {
                 printf("\b \b");
