@@ -25,8 +25,11 @@ void app_main(void)
 
     while (shell_running) {
         uint8_t c;
-        int len = uart_read_bytes(UART_NUM, &c, 1, portMAX_DELAY);
-
+        int len = uart_read_bytes(UART_NUM, &c, 1, pdMS_TO_TICKS(100));
+        if (!shell_running) {
+            break;
+        }
+        
         if (len <= 0)
             continue;
 

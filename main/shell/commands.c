@@ -80,8 +80,11 @@ void cmd_rm(int argc, char **argv) {
 }
 
 void cmd_exit(int argc, char **argv) {
-    printf("Exiting shell...\n");
+    (void)argc;
+    (void)argv;
     shell_running = 0;
+    printf("Exiting shell...\n");
+    fflush(stdout);
 }
 
 void cmd_edit(int argc, char **argv) {
@@ -178,12 +181,186 @@ void cmd_edit(int argc, char **argv) {
     printf("-- EXIT EDIT MODE --\n");
 }
 
+void cmd_mv(int argc, char **argv) {
+    if (argc < 3) {
+        printf("Usage: mv <old-file-name> <new-file-name>\n");
+        return;
+    }
+
+    char src_path[128];
+    char dest_path[128];
+    snprintf(src_path, sizeof(src_path), "/spiffs/%s", argv[1]);
+    snprintf(dest_path, sizeof(dest_path), "/spiffs/%s", argv[2]);
+
+    if (rename(src_path, dest_path) == 0) {
+        printf("Renamed: %s -> %s\n", src_path, dest_path);
+        return;
+    }
+
+    FILE *src_f = fopen(src_path, "r");
+    if (!src_f) {
+        printf("Source file not found\n");
+        return;
+    }
+
+    FILE *chk = fopen(dest_path, "r");
+    if (chk) {
+        fclose(chk);
+        fclose(src_f);
+        printf("Destination already exists\n");
+        return;
+    }
+
+    FILE *dest_f = fopen(dest_path, "w");
+    if (!dest_f) {
+        printf("Failed to open destination: errno=%d\n", errno);
+        fclose(src_f);
+        return;
+    }
+
+    char buf[256];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), src_f)) > 0) {
+        if (fwrite(buf, 1, n, dest_f) != n) {
+            printf("Write error: errno=%d\n", errno);
+            break;
+        }
+    }
+
+    fflush(dest_f);
+    fclose(dest_f);
+    fclose(src_f);
+
+    if (remove(src_path) != 0) {
+        printf("Failed to remove source: errno=%d\n", errno);
+    }
+}
+
+void cmd_cp(int argc, char **argv) {
+    if (argc < 2) {
+        printf("Usage: cp <src> [dst]\n");
+        return;
+    }
+
+    char src_path[256];
+    snprintf(src_path, sizeof(src_path), "/spiffs/%s", argv[1]);
+
+    FILE *src = fopen(src_path, "rb");
+    if (!src) {
+        printf("Source file not found\n");
+        return;
+    }
+
+    char dest_path[256];
+    char candidate[256];
+    const char *target_name;
+    int idx = 1;
+    const size_t name_limit = sizeof(dest_path) - (sizeof("/spiffs/") - 1) - 1;
+
+    if (argc >= 3) {
+        target_name = argv[2];
+        snprintf(dest_path, sizeof(dest_path), "/spiffs/%.*s",
+                 (int)name_limit, target_name);
+
+        if (strcmp(dest_path, src_path) == 0) {
+            printf("Source and destination are the same\n");
+            fclose(src);
+            return;
+        }
+
+        FILE *chk = fopen(dest_path, "rb");
+        if (chk) {
+            fclose(chk);
+
+            const char *dot = strrchr(target_name, '.');
+            while (1) {
+                if (dot && dot != target_name) {
+                    int base_len = (int)(dot - target_name);
+                    snprintf(candidate, sizeof(candidate), "%.*s_%d%s",
+                             base_len, target_name, idx, dot);
+                } else {
+                    snprintf(candidate, sizeof(candidate), "%s_%d",
+                             target_name, idx);
+                }
+
+                snprintf(dest_path, sizeof(dest_path), "/spiffs/%.*s",
+                         (int)name_limit, candidate);
+
+                FILE *c = fopen(dest_path, "rb");
+                if (c) {
+                    fclose(c);
+                    idx++;
+                    continue;
+                }
+                break;
+            }
+        }
+    } else {
+        target_name = argv[1];
+        const char *dot = strrchr(target_name, '.');
+
+        while (1) {
+            if (dot && dot != target_name) {
+                int base_len = (int)(dot - target_name);
+                snprintf(candidate, sizeof(candidate), "%.*s_%d%s",
+                         base_len, target_name, idx, dot);
+            } else {
+                snprintf(candidate, sizeof(candidate), "%s_%d",
+                         target_name, idx);
+            }
+
+            snprintf(dest_path, sizeof(dest_path), "/spiffs/%.*s",
+                     (int)name_limit, candidate);
+
+            FILE *c = fopen(dest_path, "rb");
+            if (c) {
+                fclose(c);
+                idx++;
+                continue;
+            }
+            break;
+        }
+    }
+
+    FILE *dest = fopen(dest_path, "wb");
+    if (!dest) {
+        printf("Failed to open destination: errno=%d\n", errno);
+        fclose(src);
+        return;
+    }
+
+    char buf[256];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), src)) > 0) {
+        if (fwrite(buf, 1, n, dest) != n) {
+            printf("Write error: errno=%d\n", errno);
+            break;
+        }
+    }
+
+    fflush(dest);
+    fclose(dest);
+    fclose(src);
+
+    printf("Copied: %s -> %s\n", src_path, dest_path);
+}
+
+void cmd_clear(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    printf("\033[2J\033[H\n\n");
+    fflush(stdout);
+}
+
 command_t commands[] = { 
     {"ls", cmd_ls}, 
     {"cat", cmd_cat}, 
     {"write", cmd_write}, 
     {"rm", cmd_rm}, 
+    {"mv", cmd_mv}, 
+    {"cp", cmd_cp}, 
     {"edit", cmd_edit}, 
+    {"clear", cmd_clear}, 
     {"exit", cmd_exit}, 
     {NULL, NULL}
 };

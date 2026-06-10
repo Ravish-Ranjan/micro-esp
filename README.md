@@ -30,14 +30,17 @@ idf.py monitor
 
 ## Commands
 
-| Command | Usage                      | Description                                                                                       |
-| ------- | -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `ls`    | `ls`                       | List all files in SPIFFS (no directory support)                                                   |
-| `cat`   | `cat <filename>`           | Display file contents                                                                             |
-| `write` | `write <filename> <text>`  | Write text to a file (non-interactive)                                                            |
-| `rm`    | `rm <filename>`            | Remove a file                                                                                     |
-| `edit`  | `edit [-a\|-n] <filename>` | Interactive file editor with flags:<br>- `-a`: Append mode (default)<br>- `-n`: New/Truncate mode |
-| `exit`  | `exit`                     | Exit the shell and stop the firmware                                                              |
+| Command | Usage                                   | Description                                                                                                                                        |
+| ------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ls`    | `ls`                                    | List all files in SPIFFS (no directory support)                                                                                                    |
+| `cat`   | `cat <filename>`                        | Display file contents                                                                                                                              |
+| `write` | `write <filename> <text>`               | Write text to a file (non-interactive)                                                                                                             |
+| `rm`    | `rm <filename>`                         | Remove a file                                                                                                                                      |
+| `edit`  | `edit [-a\|-n] <filename>`              | Interactive file editor with flags:<br>- `-a`: Append mode (default)<br>- `-n`: New/Truncate mode                                                  |
+| `cp`    | `cp <filename> [destination_filename]`  | copyes file:<br>- `destination provided`: copies to destination<br>- `no destination provided`: New file created with no. added to end of filename |
+| `mv`    | `edit <filename> <destination_filename` | renames/moves file:<br>- error given if destination file already exists                                                                            |
+| `clear` | `clear`                                 | performs scro;;ing the screen to show clean terminal just like `ctrl`+`l` in linux                                                                 |
+| `exit`  | `exit`                                  | Exit the shell and stop the firmware                                                                                                               |
 
 ### Edit Command Details
 
